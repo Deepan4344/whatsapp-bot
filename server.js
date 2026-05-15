@@ -32,7 +32,12 @@ function auth(req, res, next) {
 }
 
 // WhatsApp Client
-const client = new Client({ authStrategy: new LocalAuth() })
+const client = new Client({
+    authStrategy: new LocalAuth(),
+    puppeteer: {
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    }
+})
 
 client.on('qr', async (qr) => {
     whatsappStatus = 'qr'
