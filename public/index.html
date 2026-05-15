@@ -3,102 +3,99 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WhatsApp Auto Post</title>
+<title>WA Auto Post</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:Arial,sans-serif; background:#f0f2f5; }
-
-/* Login */
 #loginPage { display:flex; align-items:center; justify-content:center; min-height:100vh; }
-.login-box { background:white; padding:40px; border-radius:15px; width:350px; box-shadow:0 2px 20px rgba(0,0,0,0.1); text-align:center; }
-.login-box h1 { color:#25D366; margin-bottom:25px; }
-.login-box input { width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; margin-bottom:15px; font-size:14px; }
-.login-box button { width:100%; padding:12px; background:#25D366; color:white; border:none; border-radius:8px; font-size:16px; cursor:pointer; }
-
-/* App */
+.auth-box { background:white; padding:40px; border-radius:15px; width:380px; box-shadow:0 2px 20px rgba(0,0,0,0.1); text-align:center; }
+.auth-box h1 { color:#25D366; margin-bottom:5px; font-size:24px; }
+.auth-box p { color:#888; margin-bottom:25px; font-size:13px; }
+.tabs { display:flex; margin-bottom:20px; border-bottom:2px solid #eee; }
+.tab { flex:1; padding:10px; cursor:pointer; color:#888; font-size:14px; }
+.tab.active { color:#25D366; border-bottom:2px solid #25D366; margin-bottom:-2px; font-weight:bold; }
+.auth-box input { width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; margin-bottom:12px; font-size:14px; }
+.auth-box button { width:100%; padding:12px; background:#25D366; color:white; border:none; border-radius:8px; font-size:15px; cursor:pointer; }
+.auth-box button:hover { background:#128C7E; }
 #appPage { display:none; }
 .sidebar { width:220px; background:#075E54; min-height:100vh; position:fixed; top:0; left:0; padding:20px 0; }
-.sidebar h2 { color:white; text-align:center; padding:15px; font-size:16px; border-bottom:1px solid #128C7E; margin-bottom:10px; }
-.sidebar a { display:block; color:#ccc; padding:12px 20px; cursor:pointer; font-size:14px; text-decoration:none; }
+.sidebar h2 { color:white; text-align:center; padding:15px; font-size:15px; border-bottom:1px solid #128C7E; margin-bottom:10px; }
+.sidebar .user { color:#9de; text-align:center; font-size:12px; padding:5px 15px 15px; border-bottom:1px solid #128C7E; margin-bottom:10px; }
+.sidebar a { display:block; color:#ccc; padding:12px 20px; cursor:pointer; font-size:14px; }
 .sidebar a:hover, .sidebar a.active { background:#128C7E; color:white; }
 .main { margin-left:220px; padding:25px; }
 .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; }
 .topbar h1 { color:#075E54; font-size:20px; }
 .logout-btn { padding:8px 15px; background:#dc3545; color:white; border:none; border-radius:6px; cursor:pointer; }
-
-/* Cards */
-.cards { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; margin-bottom:25px; }
+.cards { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; margin-bottom:20px; }
 .card { background:white; padding:20px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.08); }
 .card h3 { font-size:13px; color:#888; margin-bottom:8px; }
 .card .num { font-size:32px; font-weight:bold; color:#075E54; }
-
-/* Sections */
 .section { background:white; padding:25px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.08); display:none; }
 .section.active { display:block; }
 .section h2 { color:#075E54; margin-bottom:20px; font-size:16px; }
-
-/* WhatsApp Connect */
 .wa-status { text-align:center; padding:20px; }
-.wa-status img { max-width:250px; margin:15px auto; display:block; }
+.wa-status img { max-width:220px; margin:15px auto; display:block; }
 .status-badge { display:inline-block; padding:6px 15px; border-radius:20px; font-size:13px; margin-bottom:15px; }
 .connected { background:#d4edda; color:#155724; }
 .disconnected { background:#f8d7da; color:#721c24; }
 .qr-waiting { background:#fff3cd; color:#856404; }
-
-/* Table */
-table { width:100%; border-collapse:collapse; }
-th { background:#075E54; color:white; padding:10px; font-size:13px; text-align:left; }
-td { padding:8px; border-bottom:1px solid #eee; font-size:13px; }
-td input { width:100%; padding:5px; border:1px solid #ddd; border-radius:4px; font-size:12px; }
-
-/* Buttons */
-.btn { padding:10px 18px; border:none; border-radius:8px; cursor:pointer; font-size:13px; margin:4px; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { background:#075E54; color:white; padding:10px; text-align:left; }
+td { padding:8px; border-bottom:1px solid #eee; }
+td input, td select { width:100%; padding:5px; border:1px solid #ddd; border-radius:4px; font-size:12px; }
+.btn { padding:8px 15px; border:none; border-radius:8px; cursor:pointer; font-size:13px; margin:3px; }
 .btn-green { background:#25D366; color:white; }
 .btn-teal { background:#128C7E; color:white; }
 .btn-red { background:#dc3545; color:white; }
-.btn-sm { padding:5px 10px; font-size:12px; }
-
-/* Quick Send */
+.btn-sm { padding:4px 8px; font-size:12px; }
 .form-group { margin-bottom:15px; }
 .form-group label { display:block; margin-bottom:5px; color:#555; font-size:13px; font-weight:bold; }
-.form-group input, .form-group textarea { width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; font-size:14px; }
+.form-group input, .form-group textarea, .form-group select { width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; font-size:14px; }
 .form-group textarea { height:80px; resize:none; }
-
-/* Status */
 .alert { padding:10px 15px; border-radius:8px; margin-top:10px; display:none; font-size:13px; }
 .alert-success { background:#d4edda; color:#155724; }
 .alert-error { background:#f8d7da; color:#721c24; }
-
 .sent-badge { background:#d4edda; color:#155724; padding:3px 8px; border-radius:10px; font-size:11px; }
 .pending-badge { background:#fff3cd; color:#856404; padding:3px 8px; border-radius:10px; font-size:11px; }
 </style>
 </head>
 <body>
 
-<!-- Login Page -->
+<!-- Login/Register Page -->
 <div id="loginPage">
-  <div class="login-box">
+  <div class="auth-box">
     <h1>📱 WA Auto Post</h1>
-    <p style="color:#888;margin-bottom:20px;font-size:13px">Login பண்ணுங்க</p>
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="login()">🔐 Login</button>
-    <div class="alert" id="loginAlert"></div>
+    <p>WhatsApp Automation Tool</p>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('login')">🔐 Login</div>
+      <div class="tab" onclick="switchTab('register')">📝 Register</div>
+    </div>
+    <div id="loginForm">
+      <input type="text" id="loginUser" placeholder="Username">
+      <input type="password" id="loginPass" placeholder="Password">
+      <button onclick="login()">Login</button>
+    </div>
+    <div id="registerForm" style="display:none">
+      <input type="text" id="regUser" placeholder="Username">
+      <input type="password" id="regPass" placeholder="Password">
+      <input type="password" id="regPass2" placeholder="Confirm Password">
+      <button onclick="register()">Register</button>
+    </div>
+    <div class="alert" id="authAlert"></div>
   </div>
 </div>
 
 <!-- App Page -->
 <div id="appPage">
-  <!-- Sidebar -->
   <div class="sidebar">
     <h2>📱 WA Auto Post</h2>
+    <div class="user" id="sidebarUser"></div>
     <a onclick="showSection('dashboard')" class="active" id="nav-dashboard">📊 Dashboard</a>
     <a onclick="showSection('connect')" id="nav-connect">📱 WhatsApp Connect</a>
     <a onclick="showSection('schedule')" id="nav-schedule">📅 Bulk Schedule</a>
     <a onclick="showSection('quicksend')" id="nav-quicksend">📤 Quick Send</a>
   </div>
-
-  <!-- Main -->
   <div class="main">
     <div class="topbar">
       <h1 id="pageTitle">📊 Dashboard</h1>
@@ -108,20 +105,11 @@ td input { width:100%; padding:5px; border:1px solid #ddd; border-radius:4px; fo
     <!-- Dashboard -->
     <div class="section active" id="dashboard">
       <div class="cards">
-        <div class="card">
-          <h3>Total Posts</h3>
-          <div class="num" id="totalPosts">0</div>
-        </div>
-        <div class="card">
-          <h3>✅ Sent</h3>
-          <div class="num" style="color:#25D366" id="sentPosts">0</div>
-        </div>
-        <div class="card">
-          <h3>⏳ Pending</h3>
-          <div class="num" style="color:#f39c12" id="pendingPosts">0</div>
-        </div>
+        <div class="card"><h3>Total Posts</h3><div class="num" id="totalPosts">0</div></div>
+        <div class="card"><h3>✅ Sent</h3><div class="num" style="color:#25D366" id="sentPosts">0</div></div>
+        <div class="card"><h3>⏳ Pending</h3><div class="num" style="color:#f39c12" id="pendingPosts">0</div></div>
       </div>
-      <div class="card" style="margin-top:10px">
+      <div class="card">
         <h3>WhatsApp Status</h3>
         <div id="dashWaStatus" style="margin-top:8px">Checking...</div>
       </div>
@@ -134,30 +122,57 @@ td input { width:100%; padding:5px; border:1px solid #ddd; border-radius:4px; fo
         <div id="waStatusBadge" class="status-badge disconnected">⏳ Checking...</div>
         <div id="qrContainer"></div>
         <p id="waStatusText" style="color:#888;font-size:13px;margin-top:10px"></p>
-        <button class="btn btn-green" onclick="checkWaStatus()" style="margin-top:15px">🔄 Refresh</button>
+        <button class="btn btn-green" onclick="connectWA()" style="margin-top:15px">📱 Connect பண்ணு</button>
+        <button class="btn btn-teal" onclick="checkWaStatus()" style="margin-top:15px">🔄 Refresh</button>
       </div>
     </div>
 
     <!-- Bulk Schedule -->
     <div class="section" id="schedule">
       <h2>📅 Bulk Schedule</h2>
+      <div style="margin-bottom:15px">
+        <button class="btn btn-green" onclick="showAddPost()">➕ Post Add பண்ணு</button>
+        <button class="btn btn-teal" onclick="loadPosts()">🔄 Refresh</button>
+      </div>
+
+      <!-- Add Post Form -->
+      <div id="addPostForm" style="display:none;background:#f9f9f9;padding:20px;border-radius:10px;margin-bottom:20px">
+        <h3 style="margin-bottom:15px;color:#075E54">New Post Add பண்ணு</h3>
+        <div class="form-group">
+          <label>Group</label>
+          <select id="postGroup">
+            <option value="">-- Group Select பண்ணுங்க --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Image URL</label>
+          <input type="text" id="postImage" placeholder="https://your-image.com/image.jpg">
+        </div>
+        <div class="form-group">
+          <label>Caption</label>
+          <textarea id="postCaption" placeholder="Caption இங்க போடுங்க..."></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="postDate">
+          </div>
+          <div class="form-group">
+            <label>Time</label>
+            <input type="time" id="postTime" value="10:00">
+          </div>
+        </div>
+        <button class="btn btn-green" onclick="addPost()">✅ Save பண்ணு</button>
+        <button class="btn btn-red" onclick="hideAddPost()">Cancel</button>
+        <div class="alert" id="addPostAlert"></div>
+      </div>
+
       <table>
         <thead>
-          <tr>
-            <th>#</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Image URL</th>
-            <th>Caption</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
+          <tr><th>#</th><th>Date</th><th>Time</th><th>Image</th><th>Caption</th><th>Status</th><th>Action</th></tr>
         </thead>
         <tbody id="postsTable"></tbody>
       </table>
-      <br>
-      <button class="btn btn-green" onclick="addRow()">➕ Add Row</button>
-      <button class="btn btn-teal" onclick="savePosts()">💾 Save</button>
       <div class="alert" id="scheduleAlert"></div>
     </div>
 
@@ -165,60 +180,76 @@ td input { width:100%; padding:5px; border:1px solid #ddd; border-radius:4px; fo
     <div class="section" id="quicksend">
       <h2>📤 Quick Send</h2>
       <div class="form-group">
+        <label>Group</label>
+        <select id="quickGroup">
+          <option value="">-- Group Select பண்ணுங்க --</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label>Image URL</label>
         <input type="text" id="quickUrl" placeholder="https://your-image.com/image.jpg">
       </div>
       <div class="form-group">
         <label>Caption</label>
-        <textarea id="quickCaption" placeholder="உங்க caption இங்க போடுங்க..."></textarea>
+        <textarea id="quickCaption" placeholder="Caption இங்க போடுங்க..."></textarea>
       </div>
-      <button class="btn btn-green" onclick="sendNow()">📤 Group-ல Send பண்ணு</button>
+      <button class="btn btn-green" onclick="sendNow()">📤 Send பண்ணு</button>
       <div class="alert" id="quickAlert"></div>
     </div>
   </div>
 </div>
 
 <script>
-let posts = []
+let groups = []
 
-// Login
+// Tab switch
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+  document.querySelector(`.tab:${tab === 'login' ? 'first' : 'last'}-child`).classList.add('active')
+  document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none'
+  document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none'
+}
+
+// Auth
 async function login() {
-  const username = document.getElementById('username').value
-  const password = document.getElementById('password').value
-  const res = await fetch('/api/login', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({username, password})
-  })
+  const username = document.getElementById('loginUser').value
+  const password = document.getElementById('loginPass').value
+  const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username,password}) })
   const data = await res.json()
-  if (data.success) {
-    document.getElementById('loginPage').style.display = 'none'
-    document.getElementById('appPage').style.display = 'block'
-    loadDashboard()
-    checkWaStatus()
-    loadPosts()
-  } else {
-    showAlert('loginAlert', data.message || 'Login failed!', false)
-  }
+  if (data.success) { enterApp(data.username); } 
+  else showAlert('authAlert', data.message, false)
+}
+
+async function register() {
+  const username = document.getElementById('regUser').value
+  const password = document.getElementById('regPass').value
+  const password2 = document.getElementById('regPass2').value
+  if (password !== password2) return showAlert('authAlert', 'Passwords match ஆகல!', false)
+  const res = await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username,password}) })
+  const data = await res.json()
+  if (data.success) { enterApp(username); }
+  else showAlert('authAlert', data.message, false)
 }
 
 async function logout() {
-  await fetch('/api/logout', {method:'POST'})
+  await fetch('/api/logout', { method:'POST' })
   document.getElementById('loginPage').style.display = 'flex'
   document.getElementById('appPage').style.display = 'none'
 }
 
-// Check auth on load
+function enterApp(username) {
+  document.getElementById('loginPage').style.display = 'none'
+  document.getElementById('appPage').style.display = 'block'
+  document.getElementById('sidebarUser').textContent = '👤 ' + username
+  loadDashboard()
+  checkWaStatus()
+  loadPosts()
+}
+
 async function checkAuth() {
   const res = await fetch('/api/check-auth')
   const data = await res.json()
-  if (data.loggedIn) {
-    document.getElementById('loginPage').style.display = 'none'
-    document.getElementById('appPage').style.display = 'block'
-    loadDashboard()
-    checkWaStatus()
-    loadPosts()
-  }
+  if (data.loggedIn) enterApp(data.username)
 }
 
 // Navigation
@@ -231,6 +262,7 @@ function showSection(name) {
   document.getElementById('pageTitle').textContent = titles[name]
   if (name === 'connect') checkWaStatus()
   if (name === 'dashboard') loadDashboard()
+  if (name === 'schedule' || name === 'quicksend') loadGroups()
 }
 
 // Dashboard
@@ -240,114 +272,105 @@ async function loadDashboard() {
   document.getElementById('totalPosts').textContent = data.total
   document.getElementById('sentPosts').textContent = data.sent
   document.getElementById('pendingPosts').textContent = data.pending
-  const statusEl = document.getElementById('dashWaStatus')
-  if (data.whatsappStatus === 'connected') {
-    statusEl.innerHTML = '<span class="status-badge connected">✅ Connected</span>'
-  } else {
-    statusEl.innerHTML = '<span class="status-badge disconnected">❌ Disconnected</span>'
-  }
+  const el = document.getElementById('dashWaStatus')
+  el.innerHTML = data.whatsappStatus === 'connected' 
+    ? '<span class="status-badge connected">✅ Connected</span>'
+    : '<span class="status-badge disconnected">❌ Disconnected</span>'
 }
 
-// WhatsApp Status
+// WhatsApp
+async function connectWA() {
+  await fetch('/api/whatsapp/connect', { method:'POST' })
+  setTimeout(checkWaStatus, 3000)
+}
+
 async function checkWaStatus() {
-  const res = await fetch('/api/whatsapp-status')
+  const res = await fetch('/api/whatsapp/status')
   const data = await res.json()
   const badge = document.getElementById('waStatusBadge')
   const qrContainer = document.getElementById('qrContainer')
   const text = document.getElementById('waStatusText')
-
   if (data.status === 'connected') {
-    badge.className = 'status-badge connected'
-    badge.textContent = '✅ Connected!'
-    qrContainer.innerHTML = ''
-    text.textContent = 'WhatsApp successfully connected!'
+    badge.className = 'status-badge connected'; badge.textContent = '✅ Connected!'
+    qrContainer.innerHTML = ''; text.textContent = 'WhatsApp connected!'
   } else if (data.status === 'qr') {
-    badge.className = 'status-badge qr-waiting'
-    badge.textContent = '📷 QR Scan பண்ணுங்க!'
-    qrContainer.innerHTML = `<img src="${data.qr}" alt="QR Code">`
+    badge.className = 'status-badge qr-waiting'; badge.textContent = '📷 QR Scan பண்ணுங்க!'
+    qrContainer.innerHTML = `<img src="${data.qr}" alt="QR">`
     text.textContent = 'WhatsApp → Settings → Linked Devices → Link a Device → Scan'
   } else {
-    badge.className = 'status-badge disconnected'
-    badge.textContent = '❌ Disconnected'
-    qrContainer.innerHTML = ''
-    text.textContent = 'Server restart பண்ணுங்க'
+    badge.className = 'status-badge disconnected'; badge.textContent = '❌ Disconnected'
+    qrContainer.innerHTML = ''; text.textContent = '"Connect பண்ணு" button click பண்ணுங்க'
+  }
+}
+
+// Groups
+async function loadGroups() {
+  const res = await fetch('/api/whatsapp/groups')
+  const data = await res.json()
+  if (data.success) {
+    groups = data.groups
+    const opts = '<option value="">-- Group Select --</option>' + groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('')
+    document.getElementById('postGroup').innerHTML = opts
+    document.getElementById('quickGroup').innerHTML = opts
   }
 }
 
 // Posts
 async function loadPosts() {
   const res = await fetch('/api/posts')
-  posts = await res.json()
-  renderTable()
-}
-
-function renderTable() {
+  const posts = await res.json()
   const tbody = document.getElementById('postsTable')
-  tbody.innerHTML = ''
-  posts.forEach((post, i) => {
-    tbody.innerHTML += `
+  tbody.innerHTML = posts.map((p, i) => `
     <tr>
       <td>${i+1}</td>
-      <td><input type="date" value="${post.date||''}" onchange="posts[${i}].date=this.value"></td>
-      <td><input type="time" value="${post.time||'10:00'}" onchange="posts[${i}].time=this.value" style="width:90px"></td>
-      <td><input type="text" value="${post.imageUrl||''}" placeholder="Image URL" onchange="posts[${i}].imageUrl=this.value"></td>
-      <td><input type="text" value="${post.caption||''}" placeholder="Caption" onchange="posts[${i}].caption=this.value"></td>
-      <td>${post.sent ? '<span class="sent-badge">✅ Sent</span>' : '<span class="pending-badge">⏳ Pending</span>'}</td>
+      <td>${p.date}</td>
+      <td>${p.time}</td>
+      <td><a href="${p.image_url}" target="_blank">🖼️ Image</a></td>
+      <td>${p.caption.substring(0,30)}...</td>
+      <td>${p.sent ? '<span class="sent-badge">✅ Sent</span>' : '<span class="pending-badge">⏳ Pending</span>'}</td>
       <td>
-        <button class="btn btn-green btn-sm" onclick="sendPost(${i})">📤</button>
-        <button class="btn btn-red btn-sm" onclick="deleteRow(${i})">🗑️</button>
+        <button class="btn btn-red btn-sm" onclick="deletePost('${p.id}')">🗑️</button>
       </td>
-    </tr>`
-  })
+    </tr>`).join('')
 }
 
-function addRow() {
-  const lastDate = posts.length > 0 ? new Date(posts[posts.length-1].date) : new Date()
-  const nextDate = new Date(lastDate)
-  nextDate.setDate(nextDate.getDate() + 1)
-  posts.push({ date: nextDate.toISOString().split('T')[0], time: '10:00', imageUrl: '', caption: '', sent: false })
-  renderTable()
+function showAddPost() {
+  document.getElementById('addPostForm').style.display = 'block'
+  loadGroups()
+  document.getElementById('postDate').value = new Date().toISOString().split('T')[0]
 }
 
-function deleteRow(i) {
-  posts.splice(i, 1)
-  renderTable()
+function hideAddPost() {
+  document.getElementById('addPostForm').style.display = 'none'
 }
 
-async function savePosts() {
-  const res = await fetch('/api/posts', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify(posts)
-  })
+async function addPost() {
+  const groupId = document.getElementById('postGroup').value
+  const imageUrl = document.getElementById('postImage').value
+  const caption = document.getElementById('postCaption').value
+  const date = document.getElementById('postDate').value
+  const time = document.getElementById('postTime').value
+  if (!groupId || !imageUrl || !caption || !date) return showAlert('addPostAlert', 'எல்லாமே fill பண்ணுங்க!', false)
+  const res = await fetch('/api/posts', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({imageUrl,caption,date,time,groupId}) })
   const data = await res.json()
-  showAlert('scheduleAlert', data.message, data.success)
+  if (data.success) { hideAddPost(); loadPosts(); showAlert('scheduleAlert', '✅ Post saved!', true) }
+  else showAlert('addPostAlert', data.message, false)
 }
 
-async function sendPost(i) {
-  const post = posts[i]
-  if (!post.imageUrl || !post.caption) { alert('Image URL & Caption போடுங்க!'); return }
-  const res = await fetch('/api/send', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({imageUrl: post.imageUrl, caption: post.caption})
-  })
-  const data = await res.json()
-  if (data.success) { posts[i].sent = true; await savePosts(); renderTable() }
-  alert(data.message)
+async function deletePost(id) {
+  if (!confirm('Delete பண்ணணுமா?')) return
+  await fetch(`/api/posts/${id}`, { method:'DELETE' })
+  loadPosts()
 }
 
 // Quick Send
 async function sendNow() {
+  const groupId = document.getElementById('quickGroup').value
   const imageUrl = document.getElementById('quickUrl').value
   const caption = document.getElementById('quickCaption').value
-  if (!imageUrl || !caption) { showAlert('quickAlert', 'URL & Caption போடுங்க!', false); return }
+  if (!groupId || !imageUrl || !caption) return showAlert('quickAlert', 'எல்லாமே fill பண்ணுங்க!', false)
   showAlert('quickAlert', 'Sending...', true)
-  const res = await fetch('/api/send', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({imageUrl, caption})
-  })
+  const res = await fetch('/api/send', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({imageUrl,caption,groupId}) })
   const data = await res.json()
   showAlert('quickAlert', data.message, data.success)
 }
@@ -360,7 +383,6 @@ function showAlert(id, msg, success) {
   setTimeout(() => el.style.display = 'none', 3000)
 }
 
-// Auto refresh WA status every 5 seconds
 setInterval(() => {
   if (document.getElementById('connect').classList.contains('active')) checkWaStatus()
 }, 5000)
