@@ -2,6 +2,9 @@ FROM node:20-bullseye-slim
 
 RUN apt-get update && apt-get install -y \
     chromium \
+    python3 \
+    make \
+    g++ \
     fonts-liberation \
     libappindicator3-1 \
     libasound2 \
