@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Auto Post</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .container { background: white; padding: 30px; border-radius: 15px; width: 400px; box-shadow: 0 2px 15px rgba(0,0,0,0.1); }
+        h1 { color: #25D366; text-align: center; margin-bottom: 25px; font-size: 22px; }
+        label { display: block; margin-bottom: 5px; color: #555; font-weight: bold; font-size: 14px; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; font-size: 14px; }
+        textarea { height: 80px; resize: none; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-bottom: 10px; }
+        .btn-send { background: #25D366; color: white; }
+        .btn-schedule { background: #128C7E; color: white; }
+        .btn:hover { opacity: 0.9; }
+        .status { text-align: center; padding: 10px; border-radius: 8px; margin-top: 10px; display: none; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 WhatsApp Auto Post</h1>
+        
+        <label>Image URL</label>
+        <input type="text" id="imageUrl" placeholder="https://your-image-url.com/image.jpg">
+        
+        <label>Caption</label>
+        <textarea id="caption" placeholder="உங்க caption இங்க type பண்ணுங்க..."></textarea>
+        
+        <label>Schedule Time (Daily)</label>
+        <input type="time" id="scheduleTime" value="09:00">
+        
+        <button class="btn btn-send" onclick="sendNow()">📤 இப்போவே Send பண்ணு</button>
+        <button class="btn btn-schedule" onclick="schedulePost()">⏰ Schedule பண்ணு</button>
+        
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        async function sendNow() {
+            const imageUrl = document.getElementById('imageUrl').value
+            const caption = document.getElementById('caption').value
+            
+            if (!imageUrl || !caption) {
+                showStatus('Image URL மற்றும் Caption போடுங்க!', false)
+                return
+            }
+
+            showStatus('Sending...', true)
+            
+            const res = await fetch('/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageUrl, caption })
+            })
+            const data = await res.json()
+            showStatus(data.message, data.success)
+        }
+
+        async function schedulePost() {
+            const imageUrl = document.getElementById('imageUrl').value
+            const caption = document.getElementById('caption').value
+            const time = document.getElementById('scheduleTime').value
+            
+            if (!imageUrl || !caption) {
+                showStatus('Image URL மற்றும் Caption போடுங்க!', false)
+                return
+            }
+
+            const res = await fetch('/schedule', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageUrl, caption, time })
+            })
+            const data = await res.json()
+            showStatus(data.message, data.success)
+        }
+
+        function showStatus(msg, success) {
+            const el = document.getElementById('status')
+            el.textContent = msg
+            el.className = 'status ' + (success ? 'success' : 'error')
+            el.style.display = 'block'
+        }
+    </script>
+</body>
+</html>
