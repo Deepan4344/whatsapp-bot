@@ -194,16 +194,25 @@ app.delete('/api/posts/:id', auth, (req, res) => {
 // ===== SEND APIs =====
 
 app.post('/api/send', auth, async (req, res) => {
+    const { imageUrl, caption, groupId } = req.body
+    console.log('[/api/send] Request received:', { userId: req.session.userId, groupId, imageUrl, captionLength: caption?.length })
     try {
-        const { imageUrl, caption, groupId } = req.body
         const userClient = clients[req.session.userId]
+        console.log('[/api/send] Client lookup:', userClient ? `status=${userClient.status}` : 'NOT FOUND')
         if (!userClient || userClient.status !== 'connected') {
+            console.log('[/api/send] Rejected: client not connected')
             return res.json({ success: false, message: 'WhatsApp connect பண்ணுங்க!' })
         }
+        console.log('[/api/send] Client found and connected. Fetching media from URL:', imageUrl)
         const media = await MessageMedia.fromUrl(imageUrl)
+        console.log('[/api/send] Media fetched:', { mimetype: media.mimetype, dataLength: media.data?.length })
+        console.log('[/api/send] Calling sendMessage to groupId:', groupId)
         await userClient.client.sendMessage(groupId, media, { caption })
+        console.log('[/api/send] sendMessage completed successfully')
         res.json({ success: true, message: '✅ Posted!' })
     } catch (err) {
+        console.error('[/api/send] Error:', err.message)
+        console.error('[/api/send] Stack:', err.stack)
         res.json({ success: false, message: err.message })
     }
 })
