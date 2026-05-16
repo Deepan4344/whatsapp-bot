@@ -122,7 +122,7 @@ td input, td select { width:100%; padding:5px; border:1px solid #ddd; border-rad
         <div id="waStatusBadge" class="status-badge disconnected">⏳ Checking...</div>
         <div id="qrContainer"></div>
         <p id="waStatusText" style="color:#888;font-size:13px;margin-top:10px"></p>
-        <button class="btn btn-green" onclick="connectWA()" style="margin-top:15px">📱 Connect பண்ணு</button>
+        <button class="btn btn-green" onclick="connectWA()" style="margin-top:15px">📱 Connect</button>
         <button class="btn btn-teal" onclick="checkWaStatus()" style="margin-top:15px">🔄 Refresh</button>
       </div>
     </div>
@@ -131,18 +131,16 @@ td input, td select { width:100%; padding:5px; border:1px solid #ddd; border-rad
     <div class="section" id="schedule">
       <h2>📅 Bulk Schedule</h2>
       <div style="margin-bottom:15px">
-        <button class="btn btn-green" onclick="showAddPost()">➕ Post Add பண்ணு</button>
+        <button class="btn btn-green" onclick="showAddPost()">➕ Post Add </button>
         <button class="btn btn-teal" onclick="loadPosts()">🔄 Refresh</button>
       </div>
 
       <!-- Add Post Form -->
       <div id="addPostForm" style="display:none;background:#f9f9f9;padding:20px;border-radius:10px;margin-bottom:20px">
-        <h3 style="margin-bottom:15px;color:#075E54">New Post Add பண்ணு</h3>
+        <h3 style="margin-bottom:15px;color:#075E54">Add New Post </h3>
         <div class="form-group">
-          <label>Group</label>
-          <select id="postGroup">
-            <option value="">-- Group Select பண்ணுங்க --</option>
-          </select>
+          <label>Group ID</label>
+          <input type="text" id="postGroup" placeholder="Enter WhatsApp Group ID">
         </div>
         <div class="form-group">
           <label>Image URL</label>
@@ -150,7 +148,7 @@ td input, td select { width:100%; padding:5px; border:1px solid #ddd; border-rad
         </div>
         <div class="form-group">
           <label>Caption</label>
-          <textarea id="postCaption" placeholder="Caption இங்க போடுங்க..."></textarea>
+          <textarea id="postCaption" placeholder="Caption here..."></textarea>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px">
           <div class="form-group">
@@ -162,7 +160,7 @@ td input, td select { width:100%; padding:5px; border:1px solid #ddd; border-rad
             <input type="time" id="postTime" value="10:00">
           </div>
         </div>
-        <button class="btn btn-green" onclick="addPost()">✅ Save பண்ணு</button>
+        <button class="btn btn-green" onclick="addPost()">✅ Save </button>
         <button class="btn btn-red" onclick="hideAddPost()">Cancel</button>
         <div class="alert" id="addPostAlert"></div>
       </div>
@@ -180,10 +178,8 @@ td input, td select { width:100%; padding:5px; border:1px solid #ddd; border-rad
     <div class="section" id="quicksend">
       <h2>📤 Quick Send</h2>
       <div class="form-group">
-        <label>Group</label>
-        <select id="quickGroup">
-          <option value="">-- Group Select பண்ணுங்க --</option>
-        </select>
+        <label>Group ID</label>
+        <input type="text" id="quickGroup" placeholder="Enter WhatsApp Group ID">
       </div>
       <div class="form-group">
         <label>Image URL</label>
@@ -191,17 +187,15 @@ td input, td select { width:100%; padding:5px; border:1px solid #ddd; border-rad
       </div>
       <div class="form-group">
         <label>Caption</label>
-        <textarea id="quickCaption" placeholder="Caption இங்க போடுங்க..."></textarea>
+        <textarea id="quickCaption" placeholder="Caption here..."></textarea>
       </div>
-      <button class="btn btn-green" onclick="sendNow()">📤 Send பண்ணு</button>
+      <button class="btn btn-green" onclick="sendNow()">📤 Send </button>
       <div class="alert" id="quickAlert"></div>
     </div>
   </div>
 </div>
 
 <script>
-let groups = []
-
 // Tab switch
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
@@ -244,7 +238,6 @@ function enterApp(username) {
   loadDashboard()
   checkWaStatus()
   loadPosts()
-  loadGroups()
 }
 
 async function checkAuth() {
@@ -263,7 +256,6 @@ function showSection(name) {
   document.getElementById('pageTitle').textContent = titles[name]
   if (name === 'connect') checkWaStatus()
   if (name === 'dashboard') loadDashboard()
-  if (name === 'schedule' || name === 'quicksend') loadGroups()
 }
 
 // Dashboard
@@ -304,26 +296,6 @@ async function checkWaStatus() {
   }
 }
 
-// Groups
-async function loadGroups() {
-  const selects = [document.getElementById('postGroup'), document.getElementById('quickGroup')]
-  selects.forEach(s => { s.innerHTML = '<option value="">⏳ Loading groups...</option>' })
-  try {
-    const res = await fetch('/api/whatsapp/groups')
-    const data = await res.json()
-    if (data.success && data.groups && data.groups.length > 0) {
-      groups = data.groups
-      const opts = '<option value="">-- Group Select பண்ணுங்க --</option>' + groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('')
-      selects.forEach(s => { s.innerHTML = opts })
-    } else if (data.success) {
-      selects.forEach(s => { s.innerHTML = '<option value="">-- No groups found (WhatsApp sync pending?) --</option>' })
-    } else {
-      selects.forEach(s => { s.innerHTML = `<option value="">-- ${data.message || 'Failed to load groups'} --</option>` })
-    }
-  } catch(e) {
-    selects.forEach(s => { s.innerHTML = '<option value="">-- Error loading groups --</option>' })
-  }
-}
 
 // Posts
 async function loadPosts() {
@@ -346,7 +318,6 @@ async function loadPosts() {
 
 function showAddPost() {
   document.getElementById('addPostForm').style.display = 'block'
-  loadGroups()
   document.getElementById('postDate').value = new Date().toISOString().split('T')[0]
 }
 
