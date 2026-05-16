@@ -244,6 +244,7 @@ function enterApp(username) {
   loadDashboard()
   checkWaStatus()
   loadPosts()
+  loadGroups()
 }
 
 async function checkAuth() {
@@ -305,13 +306,22 @@ async function checkWaStatus() {
 
 // Groups
 async function loadGroups() {
-  const res = await fetch('/api/whatsapp/groups')
-  const data = await res.json()
-  if (data.success) {
-    groups = data.groups
-    const opts = '<option value="">-- Group Select --</option>' + groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('')
-    document.getElementById('postGroup').innerHTML = opts
-    document.getElementById('quickGroup').innerHTML = opts
+  const selects = [document.getElementById('postGroup'), document.getElementById('quickGroup')]
+  selects.forEach(s => { s.innerHTML = '<option value="">⏳ Loading groups...</option>' })
+  try {
+    const res = await fetch('/api/whatsapp/groups')
+    const data = await res.json()
+    if (data.success && data.groups && data.groups.length > 0) {
+      groups = data.groups
+      const opts = '<option value="">-- Group Select பண்ணுங்க --</option>' + groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('')
+      selects.forEach(s => { s.innerHTML = opts })
+    } else if (data.success) {
+      selects.forEach(s => { s.innerHTML = '<option value="">-- No groups found (WhatsApp sync pending?) --</option>' })
+    } else {
+      selects.forEach(s => { s.innerHTML = `<option value="">-- ${data.message || 'Failed to load groups'} --</option>` })
+    }
+  } catch(e) {
+    selects.forEach(s => { s.innerHTML = '<option value="">-- Error loading groups --</option>' })
   }
 }
 
