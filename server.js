@@ -33,14 +33,16 @@ async function createClient(userId) {
     const client = new Client({
         authStrategy: new LocalAuth({ clientId: userId }),
         puppeteer: {
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            protocolTimeout: 60000
         }
     })
 
     clients[userId] = {
         client,
         status: 'disconnected',
-        qr: null
+        qr: null,
+        groupsCache: null
     }
 
     client.on('qr', async (qr) => {
@@ -57,6 +59,7 @@ async function createClient(userId) {
     client.on('disconnected', () => {
         clients[userId].status = 'disconnected'
         clients[userId].qr = null
+        clients[userId].groupsCache = null
     })
 
     await client.initialize()
@@ -147,17 +150,25 @@ app.get('/api/whatsapp/status', auth, (req, res) => {
 })
 
 app.get('/api/whatsapp/groups', auth, async (req, res) => {
+    const userClient = clients[req.session.userId]
+    if (!userClient || userClient.status !== 'connected') {
+        return res.json({ success: false, message: 'WhatsApp connect பண்ணுங்க!' })
+    }
+    if (userClient.groupsCache) {
+        return res.json({ success: true, groups: userClient.groupsCache, cached: true })
+    }
     try {
-        const userClient = clients[req.session.userId]
-        if (!userClient || userClient.status !== 'connected') {
-            return res.json({ success: false, message: 'WhatsApp connect பண்ணுங்க!' })
-        }
-        const chats = await userClient.client.getChats()
+        const timeout = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('getChats() timed out after 30s')), 30000)
+        )
+        const chats = await Promise.race([userClient.client.getChats(), timeout])
         const groups = chats
             .filter(c => c.isGroup)
             .map(c => ({ id: c.id._serialized, name: c.name }))
+        userClient.groupsCache = groups
         res.json({ success: true, groups })
     } catch (err) {
+        console.error('[/api/whatsapp/groups] Error:', err.message)
         res.json({ success: false, message: err.message })
     }
 })
