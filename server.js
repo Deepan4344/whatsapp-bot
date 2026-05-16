@@ -26,6 +26,31 @@ function auth(req, res, next) {
     res.status(401).json({ success: false, message: 'Login பண்ணுங்க!' })
 }
 
+// Webhook auth middleware — checks x-webhook-secret header against WEBHOOK_SECRET env var
+function webhookAuth(req, res, next) {
+    const secret = process.env.WEBHOOK_SECRET
+    if (!secret) return res.status(500).json({ success: false, message: 'WEBHOOK_SECRET env variable is not configured' })
+    if (req.headers['x-webhook-secret'] !== secret) {
+        return res.status(401).json({ success: false, message: 'Invalid or missing x-webhook-secret header' })
+    }
+    next()
+}
+
+// Fire-and-forget POST to WEBHOOK_CALLBACK_URL after every successful send
+async function fireCallback(payload) {
+    const url = process.env.WEBHOOK_CALLBACK_URL
+    if (!url) return
+    try {
+        await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+    } catch (err) {
+        console.error('[webhook-callback] Failed to post callback:', err.message)
+    }
+}
+
 // Create WhatsApp client for user
 async function createClient(userId) {
     if (clients[userId]) return clients[userId]
@@ -82,6 +107,14 @@ cron.schedule('* * * * *', async () => {
                 await userClient.client.sendMessage(post.group_id, media, { caption: post.caption })
                 db.markSent(post.id)
                 console.log(`✅ Posted for user ${post.user_id}`)
+                fireCallback({
+                    status: 'sent',
+                    userId: post.user_id,
+                    groupId: post.group_id,
+                    caption: post.caption,
+                    imageUrl: post.image_url,
+                    sentAt: new Date().toISOString()
+                })
             } catch (err) {
                 console.log(`❌ Error: ${err.message}`)
             }
@@ -220,11 +253,57 @@ app.post('/api/send', auth, async (req, res) => {
         console.log('[/api/send] Calling sendMessage to groupId:', groupId)
         await userClient.client.sendMessage(groupId, media, { caption })
         console.log('[/api/send] sendMessage completed successfully')
+        fireCallback({
+            status: 'sent',
+            userId: req.session.userId,
+            groupId,
+            caption,
+            imageUrl,
+            sentAt: new Date().toISOString()
+        })
         res.json({ success: true, message: '✅ Posted!' })
     } catch (err) {
         console.error('[/api/send] Error:', err.message)
         console.error('[/api/send] Stack:', err.stack)
         res.json({ success: false, message: err.message })
+    }
+})
+
+// ===== WEBHOOK APIs (for n8n / Make) =====
+
+app.post('/webhook/send', webhookAuth, async (req, res) => {
+    const { imageUrl, caption, groupId, userId } = req.body
+    if (!imageUrl || !caption || !groupId || !userId) {
+        return res.status(400).json({ success: false, message: 'imageUrl, caption, groupId, userId are required' })
+    }
+    const userClient = clients[userId]
+    if (!userClient || userClient.status !== 'connected') {
+        return res.status(503).json({ success: false, message: `WhatsApp client for user ${userId} is not connected` })
+    }
+    try {
+        const media = await MessageMedia.fromUrl(imageUrl)
+        await userClient.client.sendMessage(groupId, media, { caption })
+        const sentAt = new Date().toISOString()
+        fireCallback({ status: 'sent', userId, groupId, caption, imageUrl, sentAt })
+        res.json({ success: true, sentAt })
+    } catch (err) {
+        console.error('[/webhook/send] Error:', err.message)
+        res.status(500).json({ success: false, message: err.message })
+    }
+})
+
+app.post('/webhook/schedule', webhookAuth, (req, res) => {
+    const { imageUrl, caption, groupId, userId, date, time } = req.body
+    if (!imageUrl || !caption || !groupId || !userId || !date || !time) {
+        return res.status(400).json({ success: false, message: 'imageUrl, caption, groupId, userId, date, time are required' })
+    }
+    try {
+        const id = uuidv4()
+        db.createPost(id, userId, imageUrl, caption, date, time, groupId)
+        res.json({ success: true, postId: id })
+    } catch (err) {
+        console.error('[/webhook/schedule] Error:', err.message)
+        res.status(500).json({ success: false, message: err.message })
     }
 })
 
