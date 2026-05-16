@@ -66,11 +66,11 @@ async function createClient(userId) {
     return clients[userId]
 }
 
-// Scheduler — every minute check
+// Scheduler — every minute check (IST: Asia/Kolkata, UTC+5:30)
 cron.schedule('* * * * *', async () => {
     const now = new Date()
-    const todayStr = now.toISOString().split('T')[0]
-    const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0')
+    const todayStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
+    const timeStr  = now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false })
 
     const pendingPosts = db.getPendingPosts(todayStr, timeStr)
 
@@ -87,7 +87,7 @@ cron.schedule('* * * * *', async () => {
             }
         }
     }
-})
+}, { timezone: 'Asia/Kolkata' })
 
 // ===== AUTH APIs =====
 
