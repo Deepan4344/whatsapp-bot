@@ -226,4 +226,21 @@ app.get('/api/stats', auth, (req, res) => {
     res.json(stats)
 })
 
-app.listen(3000, () => console.log('🌐 http://localhost:3000'))
+async function initAllClients() {
+    const users = db.getAllUsers()
+    console.log(`[startup] Found ${users.length} user(s) — initializing WhatsApp clients...`)
+    for (const user of users) {
+        console.log(`[startup] Initializing client for user "${user.username}" (${user.id})`)
+        try {
+            await createClient(user.id)
+        } catch (err) {
+            console.error(`[startup] Failed for user "${user.username}": ${err.message}`)
+        }
+    }
+    console.log('[startup] All clients initialized.')
+}
+
+app.listen(3000, async () => {
+    console.log('🌐 http://localhost:3000')
+    await initAllClients()
+})

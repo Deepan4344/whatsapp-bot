@@ -34,6 +34,10 @@ module.exports = {
     return db.prepare('INSERT INTO users (id, username, password) VALUES (?, ?, ?)').run(id, username, hash)
   },
 
+  getAllUsers: () => {
+    return db.prepare('SELECT id, username FROM users').all()
+  },
+
   findUser: (username) => {
     return db.prepare('SELECT * FROM users WHERE username = ?').get(username)
   },
