@@ -1,84 +1,130 @@
-const Database = require('better-sqlite3')
+const { createClient } = require('@supabase/supabase-js')
 const bcrypt = require('bcryptjs')
-const path = require('path')
 
-const db = new Database(path.join(__dirname, 'app.db'))
-
-// Tables create
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS posts (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    image_url TEXT NOT NULL,
-    caption TEXT NOT NULL,
-    date TEXT NOT NULL,
-    time TEXT NOT NULL,
-    group_id TEXT NOT NULL,
-    sent INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-  );
-`)
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SECRET_KEY
+)
 
 module.exports = {
-  // User functions
-  createUser: (id, username, password) => {
+  // ===== USER FUNCTIONS =====
+
+  createUser: async (id, username, password) => {
     const hash = bcrypt.hashSync(password, 10)
-    return db.prepare('INSERT INTO users (id, username, password) VALUES (?, ?, ?)').run(id, username, hash)
+    const { error } = await supabase
+      .from('users')
+      .insert({ id, username, password_hash: hash })
+    if (error) throw new Error(error.message)
   },
 
-  getAllUsers: () => {
-    return db.prepare('SELECT id, username FROM users').all()
+  findUser: async (username) => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', username)
+      .single()
+    if (error) return null
+    return data
   },
 
-  findUser: (username) => {
-    return db.prepare('SELECT * FROM users WHERE username = ?').get(username)
+  findUserById: async (id) => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single()
+    if (error) return null
+    return data
   },
 
-  findUserById: (id) => {
-    return db.prepare('SELECT * FROM users WHERE id = ?').get(id)
+  getAllUsers: async () => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, username')
+    if (error) return []
+    return data
   },
 
   verifyPassword: (password, hash) => {
     return bcrypt.compareSync(password, hash)
   },
 
-  // Posts functions
-  getPosts: (userId) => {
-    return db.prepare('SELECT * FROM posts WHERE user_id = ? ORDER BY date, time').all(userId)
+  // ===== POSTS FUNCTIONS =====
+
+  getPosts: async (userId) => {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('user_id', userId)
+      .order('date', { ascending: true })
+      .order('time', { ascending: true })
+    if (error) return []
+    return data
   },
 
-  createPost: (id, userId, imageUrl, caption, date, time, groupId) => {
-    return db.prepare('INSERT INTO posts (id, user_id, image_url, caption, date, time, group_id) VALUES (?, ?, ?, ?, ?, ?, ?)').run(id, userId, imageUrl, caption, date, time, groupId)
+  createPost: async (id, userId, imageUrl, caption, date, time, groupId) => {
+    const { error } = await supabase
+      .from('posts')
+      .insert({
+        id,
+        user_id: userId,
+        image_url: imageUrl,
+        caption,
+        date,
+        time,
+        group_id: groupId,
+        sent: false
+      })
+    if (error) throw new Error(error.message)
   },
 
-  updatePost: (id, imageUrl, caption, date, time, groupId) => {
-    return db.prepare('UPDATE posts SET image_url=?, caption=?, date=?, time=?, group_id=? WHERE id=?').run(imageUrl, caption, date, time, groupId, id)
+  updatePost: async (id, imageUrl, caption, date, time, groupId) => {
+    const { error } = await supabase
+      .from('posts')
+      .update({ image_url: imageUrl, caption, date, time, group_id: groupId })
+      .eq('id', id)
+    if (error) throw new Error(error.message)
   },
 
-  deletePost: (id) => {
-    return db.prepare('DELETE FROM posts WHERE id = ?').run(id)
+  deletePost: async (id) => {
+    const { error } = await supabase
+      .from('posts')
+      .delete()
+      .eq('id', id)
+    if (error) throw new Error(error.message)
   },
 
-  markSent: (id) => {
-    return db.prepare('UPDATE posts SET sent = 1 WHERE id = ?').run(id)
+  markSent: async (id) => {
+    const { error } = await supabase
+      .from('posts')
+      .update({ sent: true })
+      .eq('id', id)
+    if (error) throw new Error(error.message)
   },
 
-  getPendingPosts: (date, time) => {
-    return db.prepare('SELECT * FROM posts WHERE date = ? AND time = ? AND sent = 0').all(date, time)
+  getPendingPosts: async (date, time) => {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('date', date)
+      .eq('time', time)
+      .eq('sent', false)
+    if (error) return []
+    return data
   },
 
-  getStats: (userId) => {
-    const total = db.prepare('SELECT COUNT(*) as count FROM posts WHERE user_id = ?').get(userId)
-    const sent = db.prepare('SELECT COUNT(*) as count FROM posts WHERE user_id = ? AND sent = 1').get(userId)
-    const pending = db.prepare('SELECT COUNT(*) as count FROM posts WHERE user_id = ? AND sent = 0').get(userId)
-    return { total: total.count, sent: sent.count, pending: pending.count }
+  getStats: async (userId) => {
+    const { data: allPosts } = await supabase
+      .from('posts')
+      .select('sent')
+      .eq('user_id', userId)
+
+    if (!allPosts) return { total: 0, sent: 0, pending: 0 }
+
+    const total = allPosts.length
+    const sent = allPosts.filter(p => p.sent).length
+    const pending = allPosts.filter(p => !p.sent).length
+
+    return { total, sent, pending }
   }
 }
