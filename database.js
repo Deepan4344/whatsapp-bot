@@ -1,9 +1,13 @@
 const { createClient } = require('@supabase/supabase-js')
 const bcrypt = require('bcryptjs')
+const ws = require('ws')
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SECRET_KEY
+  process.env.SUPABASE_SECRET_KEY,
+  {
+    realtime: { transport: ws }
+  }
 )
 
 module.exports = {
